@@ -10,38 +10,59 @@ const saveFilePath = `${path}/current_ip.txt`;
 
 const envArr = ['mail_host', 'mail_user', 'mail_password', 'app_name'];
 
-const main = async () => {
+const sleep = (ms: number) => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve();
+    }, ms);
+  });
+};
+
+const checkEnv = () => {
   try {
     for (const envKey of envArr) {
       if (!process.env[envKey]) {
         console.log(`Need ${envKey} in .env`);
-        return;
+        return false;
       }
     }
   } catch (e) {
     console.log('Need .env!!');
+    return false;
+  }
+  return true;
+};
+
+const sendIpChanged = async (appName: string, currentIp: string) => {
+  try {
+    await sendMail(
+      'jh_yu@likealocal.co.kr',
+      `${appName ? `[${appName}] ` : ''}IP changed: ${currentIp}`,
+      `IP changed: ${currentIp}`,
+    );
+  } catch (e) {
+    console.log(e);
     return;
   }
-  const appName = process.env.app_name;
-  let beforeIp = '';
-  try {
-    beforeIp = fs.readFileSync(saveFilePath, 'utf8');
-  } catch (e) {}
+};
 
-  const currentIp = Ip.address();
-
-  if (currentIp !== beforeIp) {
-    try {
-      await sendMail(
-        'jh_yu@likealocal.co.kr',
-        `${appName ? `[${appName}] ` : ''}IP changed: ${currentIp}`,
-        `IP changed: ${currentIp}`,
-      );
-    } catch (e) {
-      console.log(e);
+const main = async () => {
+  while (true) {
+    const isEnvOk = checkEnv();
+    if (!isEnvOk) {
       return;
     }
-    fs.writeFileSync(saveFilePath, currentIp);
+    const appName = process.env.app_name;
+    let beforeIp = '';
+    try {
+      beforeIp = fs.readFileSync(saveFilePath, 'utf8');
+    } catch (e) {}
+    const currentIp = Ip.address();
+    if (currentIp !== beforeIp) {
+      await sendIpChanged(appName, currentIp);
+      fs.writeFileSync(saveFilePath, currentIp);
+    }
+    await sleep(1000);
   }
 };
 
