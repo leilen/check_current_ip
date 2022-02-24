@@ -1,0 +1,14 @@
+{
+        "compilerOptions": {
+            "moduleResolution": "node",
+            "typeRoots": [
+                "node_modules/@types"
+            ],
+            "resolveJsonModule": true
+        },
+        "files" : ["./src/app.ts"],
+        "exclude": [
+            "node_modules",
+            "dist"
+        ]
+    }
