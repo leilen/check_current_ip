@@ -8,7 +8,20 @@ dotenv.config({path: `${path}/.env`});
 
 const saveFilePath = `${path}/current_ip.txt`;
 
+const envArr = ['mail_host', 'mail_user', 'mail_password', 'app_name'];
+
 const main = async () => {
+  try {
+    for (const envKey of envArr) {
+      if (!process.env[envKey]) {
+        console.log(`Need ${envKey} in .env`);
+        return;
+      }
+    }
+  } catch (e) {
+    console.log('Need .env!!');
+    return;
+  }
   const appName = process.env.app_name;
   let beforeIp = '';
   try {
